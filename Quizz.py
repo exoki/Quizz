@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 bot = telebot.TeleBot(TOKEN)
 
 players = {}
-questions = {"вопрос1": ["2012", "2008", "2015", "2019"],
+questions = {"вопрос1": ["2015", "2008", "2012", "2019"],
              "вопрос2": ["Макеев", "Маркулис", "Смирнов", "Плаудис"],
              "вопрос3": ["Рэп", "Рок", "Джаз", "Поп"],
              "вопрос4": ["Рига", "Даугавпилс", "Лиепая", "Юрмала"],
@@ -22,23 +22,40 @@ questions = {"вопрос1": ["2012", "2008", "2015", "2019"],
 @bot.message_handler(commands=["start", "help"])
 def start_command(message):
     bot.send_message(message.from_user.id, "Hi")
+    players[message.from_user.id] = {"que": "", "points": 0, "num": 0}
 
 
 @bot.message_handler(commands=["game"])
 def game(message):
-    quest = list(questions.keys())[0]
-    print(quest)
+    check(message)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback(cb):
+    print(cb)
+    players[cb.from_user.id]["num"] += 1
+    if cb.data == players[cb.from_user.id]:
+        bot.send_message(cb.from_user.id, "Правильный ответ")
+        players[cb.from_user.id]["point"] += 1
+    else:
+        bot.send_message(cb.from_user.id, "Неправильный ответ")
+    check(cb)
+
+
+def check(message):
+    quest = list(questions.keys())[0]   # TODO: остановились здесь!
+    ques = questions[quest]
+    players[message.from_user.id]["que"] = ques[0]
+    print(players)
     markup = InlineKeyboardMarkup()
-    button = InlineKeyboardButton(text="1", callback_data="Платина")
-    button2 = InlineKeyboardButton(text="2", callback_data="Платина2")
-    button3 = InlineKeyboardButton(text="3", callback_data="Платина3")
-    markup.add(button, button2, button3)
+    button = InlineKeyboardButton(text=ques[0], callback_data=ques[0])
+    button2 = InlineKeyboardButton(text=ques[1], callback_data=ques[1])
+    button3 = InlineKeyboardButton(text=ques[2], callback_data=ques[2])
+    button4 = InlineKeyboardButton(text=ques[3], callback_data=ques[3])
+    markup.add(button, button2).add(button3, button4)
     bot.send_message(message.from_user.id, "Hi", reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: call.data == "Платина")
-def callback(cb):
-    print(cb)
 
 
 @bot.message_handler(content_types=["text"])
@@ -47,3 +64,9 @@ def start_chatting(message):
 
 
 bot.infinity_polling(timeout=20)
+
+
+"""
+
+
+"""
